@@ -99,16 +99,48 @@
         >
       </li>
     </ul>
+    <div>
+      <button @click="addPic">加载图片</button>
+      <img :src="imgSrc" alt="图片" />
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
+import { FileFilter, remote } from "electron";
+// const { remote } = window.require("electron");
+// interface Window {
+//   remote: Remote;
+// }
 
 export default defineComponent({
   name: "HelloWorld",
   props: {
     msg: String
+  },
+  setup() {
+    const imgSrc = ref("");
+    function addPic() {
+      const fileFilter: FileFilter[] = [
+        { extensions: ["jpg", "png", "jpeg"], name: "图片" }
+      ];
+      remote.dialog
+        .showOpenDialog(remote.getCurrentWindow(), {
+          filters: fileFilter,
+          title: "请选择需要的图片"
+        })
+        .then(({ canceled, filePaths }) => {
+          if (canceled) {
+            return;
+          }
+          imgSrc.value = filePaths[0];
+        });
+    }
+    return {
+      addPic,
+      imgSrc
+    };
   }
 });
 </script>
