@@ -134,7 +134,9 @@ export default defineComponent({
           if (canceled) {
             return;
           }
-          imgSrc.value = filePaths[0];
+          filePaths[0] = filePaths[0].replaceAll("\\", "/");
+          imgSrc.value = "safe-file://" + filePaths[0];
+          console.log("filePath", filePaths);
         });
     }
     return {
