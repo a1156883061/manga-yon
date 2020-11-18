@@ -4,6 +4,8 @@ import { app, protocol, BrowserWindow } from 'electron';
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib';
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 import { registerSafeFileProtocol } from './main/regist-protocol';
+import { getWindowBounds, saveWindowBoundsConfig } from './main/config';
+import { verifyWindowBounds } from './util';
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
 // Scheme must be registered before the app is ready
@@ -11,17 +13,34 @@ protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } },
 ]);
 
+let bounds: Electron.Rectangle;
 async function createWindow() {
+  const boundTmp = getWindowBounds('main');
+  console.log('窗口信息', boundTmp);
+  if (
+    boundTmp == undefined ||
+    Object.entries(boundTmp).length == 0 ||
+    typeof boundTmp == 'string'
+  ) {
+    bounds = {
+      width: 1920,
+      height: 1080,
+      x: 100,
+      y: 100,
+    };
+  } else {
+    bounds = boundTmp;
+  }
+  verifyWindowBounds(bounds);
   // Create the browser window.
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    ...bounds,
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
       // nodeIntegration: (process.env
       //   .ELECTRON_NODE_INTEGRATION as unknown) as boolean
-      nodeIntegration: true,
+      nodeIntegration: isDevelopment,
       enableRemoteModule: true,
     },
   });
@@ -35,6 +54,13 @@ async function createWindow() {
     // Load the index.html when not in development
     win.loadURL('app://./index.html');
   }
+
+  win.addListener('close', () => {
+    bounds = win.getBounds();
+    if (!win.isMaximized()) {
+      saveWindowBoundsConfig(bounds);
+    }
+  });
 }
 
 // Quit when all windows are closed.
@@ -44,6 +70,10 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+app.on('before-quit', () => {
+  // saveWindowBoundsConfig(bounds);
 });
 
 app.on('activate', () => {
