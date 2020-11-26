@@ -74,7 +74,7 @@ function writeWindowConfigToFile(windowConfig: Electron.Rectangle) {
  * 获取窗口信息
  * @param winName 要获取窗口信息的窗口名称
  */
-function getWindowBounds(winName: string): Electron.Rectangle | string {
+function getWindowBounds(): Electron.Rectangle | string {
   try {
     if (fs.existsSync(configPath)) {
       const config = getConfig();
@@ -86,7 +86,6 @@ function getWindowBounds(winName: string): Electron.Rectangle | string {
         config.window = defaultWindowConfig;
         writeWindowConfigToFile(config);
       }
-      console.log('config', config);
       return config.window;
     } else {
       createConfigFile();

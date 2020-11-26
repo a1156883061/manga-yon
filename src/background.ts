@@ -1,11 +1,13 @@
 'use strict';
-
-import { app, protocol, BrowserWindow } from 'electron';
+import path from 'path';
+import { app, protocol, BrowserWindow, ipcMain } from 'electron';
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib';
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 import { registerSafeFileProtocol } from './main/regist-protocol';
-import { getWindowBounds, saveWindowBoundsConfig } from './main/config';
-import { verifyWindowBounds } from './util';
+// import { getWindowBounds, saveWindowBoundsConfig } from './main/config';
+import { getWindowBounds, saveWindowBoundsConfig } from './config/windowConfig';
+import './main/service';
+import createWindow from './main/create-window';
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
 // Scheme must be registered before the app is ready
@@ -13,9 +15,11 @@ protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } },
 ]);
 
-let bounds: Electron.Rectangle;
-async function createWindow() {
-  const boundTmp = getWindowBounds('main');
+// let bounds: Electron.Rectangle;
+// createWindow('main');
+/* async function createWindow() {
+  const windowConfig = getWindowBounds('main');
+  const boundTmp = windowConfig.windowConfig;
   console.log('窗口信息', boundTmp);
   if (
     boundTmp == undefined ||
@@ -31,7 +35,7 @@ async function createWindow() {
   } else {
     bounds = boundTmp;
   }
-  verifyWindowBounds(bounds);
+  console.log('config path', path.resolve(process.execPath, '../config'));
   // Create the browser window.
   const win = new BrowserWindow({
     ...bounds,
@@ -40,11 +44,14 @@ async function createWindow() {
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
       // nodeIntegration: (process.env
       //   .ELECTRON_NODE_INTEGRATION as unknown) as boolean
-      nodeIntegration: isDevelopment,
+      nodeIntegration: true,
       enableRemoteModule: true,
     },
   });
-
+  if (windowConfig.isMaxSized) {
+    win.hide();
+    win.maximize();
+  }
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
     await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL as string);
@@ -54,14 +61,27 @@ async function createWindow() {
     // Load the index.html when not in development
     win.loadURL('app://./index.html');
   }
-
-  win.addListener('close', () => {
-    bounds = win.getBounds();
-    if (!win.isMaximized()) {
-      saveWindowBoundsConfig(bounds);
-    }
+  ipcMain.handle('window-status', () => {
+    return win.isMaximized();
   });
-}
+  // win.addListener('unmaximize', () => {
+  //   bounds = win.getBounds();
+  // });
+  win.addListener('close', () => {
+    let windowConfigNow: typeof windowConfig;
+    if (!win.isMaximized()) {
+      bounds = win.getBounds();
+      windowConfigNow = { isMaxSized: false, windowConfig: bounds };
+      // saveWindowBoundsConfig(bounds);
+    } else {
+      win.hide();
+      win.unmaximize();
+      bounds = win.getBounds();
+      windowConfigNow = { isMaxSized: true, windowConfig: bounds };
+    }
+    saveWindowBoundsConfig('main', windowConfigNow);
+  });}
+ */
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -79,7 +99,7 @@ app.on('before-quit', () => {
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  if (BrowserWindow.getAllWindows().length === 0) createWindow('main');
 });
 
 // This method will be called when Electron has finished
@@ -95,7 +115,7 @@ app.on('ready', async () => {
     }
   }
   registerSafeFileProtocol();
-  createWindow();
+  createWindow('main');
 });
 
 // Exit cleanly on request from parent process in development mode.

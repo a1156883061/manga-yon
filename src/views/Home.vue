@@ -17,24 +17,25 @@
         class="trigger"
         @click="() => (collapsed = !collapsed)"
       />
-      <a-menu theme="light" mode="inline" v-model:selectedKeys="selectedKeys">
+      <a-menu
+        theme="light"
+        mode="inline"
+        class="mo-menu"
+        v-model:selectedKeys="selectedKeys"
+      >
         <a-menu-item key="1">
           <user-outlined />
-          <span>nav 1</span>
+          <span>书架</span>
         </a-menu-item>
         <a-menu-item key="2">
           <video-camera-outlined />
-          <span>nav 2</span>
-        </a-menu-item>
-        <a-menu-item key="3">
-          <upload-outlined />
-          <span>nav 3</span>
+          <span>设置</span>
         </a-menu-item>
       </a-menu>
     </a-layout-sider>
     <a-layout>
       <a-layout-content :class="comicList">
-        Content
+        <comic-shelf />
       </a-layout-content>
     </a-layout>
   </a-layout>
@@ -42,11 +43,10 @@
 
 <script lang="ts">
   import { defineComponent, ref } from 'vue';
-  // import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
+  import comicShelf from '@/views/comic-shelf.vue';
   import {
     UserOutlined,
     VideoCameraOutlined,
-    UploadOutlined,
     MenuUnfoldOutlined,
     MenuFoldOutlined,
   } from '@ant-design/icons-vue';
@@ -55,9 +55,9 @@
     components: {
       UserOutlined,
       VideoCameraOutlined,
-      UploadOutlined,
       MenuUnfoldOutlined,
       MenuFoldOutlined,
+      comicShelf,
     },
     setup() {
       const selectedKeys = ref(['1']);
@@ -96,5 +96,8 @@
     padding: '24px';
     background: '#fff';
     min-height: '280px';
+  }
+  .mo-menu {
+    background-color: #fafafa;
   }
 </style>
