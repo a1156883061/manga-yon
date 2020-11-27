@@ -1,11 +1,7 @@
 'use strict';
-import path from 'path';
-import { app, protocol, BrowserWindow, ipcMain } from 'electron';
-import { createProtocol } from 'vue-cli-plugin-electron-builder/lib';
-import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
+import { app, protocol, BrowserWindow } from 'electron';
+// import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 import { registerSafeFileProtocol } from './main/regist-protocol';
-// import { getWindowBounds, saveWindowBoundsConfig } from './main/config';
-import { getWindowBounds, saveWindowBoundsConfig } from './config/windowConfig';
 import './main/service';
 import createWindow from './main/create-window';
 const isDevelopment = process.env.NODE_ENV !== 'production';
@@ -15,74 +11,6 @@ protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } },
 ]);
 
-// let bounds: Electron.Rectangle;
-// createWindow('main');
-/* async function createWindow() {
-  const windowConfig = getWindowBounds('main');
-  const boundTmp = windowConfig.windowConfig;
-  console.log('窗口信息', boundTmp);
-  if (
-    boundTmp == undefined ||
-    Object.entries(boundTmp).length == 0 ||
-    typeof boundTmp == 'string'
-  ) {
-    bounds = {
-      width: 1920,
-      height: 1080,
-      x: 100,
-      y: 100,
-    };
-  } else {
-    bounds = boundTmp;
-  }
-  console.log('config path', path.resolve(process.execPath, '../config'));
-  // Create the browser window.
-  const win = new BrowserWindow({
-    ...bounds,
-    webPreferences: {
-      // Use pluginOptions.nodeIntegration, leave this alone
-      // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
-      // nodeIntegration: (process.env
-      //   .ELECTRON_NODE_INTEGRATION as unknown) as boolean
-      nodeIntegration: true,
-      enableRemoteModule: true,
-    },
-  });
-  if (windowConfig.isMaxSized) {
-    win.hide();
-    win.maximize();
-  }
-  if (process.env.WEBPACK_DEV_SERVER_URL) {
-    // Load the url of the dev server if in development mode
-    await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL as string);
-    if (!process.env.IS_TEST) win.webContents.openDevTools();
-  } else {
-    createProtocol('app');
-    // Load the index.html when not in development
-    win.loadURL('app://./index.html');
-  }
-  ipcMain.handle('window-status', () => {
-    return win.isMaximized();
-  });
-  // win.addListener('unmaximize', () => {
-  //   bounds = win.getBounds();
-  // });
-  win.addListener('close', () => {
-    let windowConfigNow: typeof windowConfig;
-    if (!win.isMaximized()) {
-      bounds = win.getBounds();
-      windowConfigNow = { isMaxSized: false, windowConfig: bounds };
-      // saveWindowBoundsConfig(bounds);
-    } else {
-      win.hide();
-      win.unmaximize();
-      bounds = win.getBounds();
-      windowConfigNow = { isMaxSized: true, windowConfig: bounds };
-    }
-    saveWindowBoundsConfig('main', windowConfigNow);
-  });}
- */
-
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
   // On macOS it is common for applications and their menu bar
@@ -90,10 +18,6 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
-});
-
-app.on('before-quit', () => {
-  // saveWindowBoundsConfig(bounds);
 });
 
 app.on('activate', () => {
@@ -106,14 +30,14 @@ app.on('activate', () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
-  if (isDevelopment && !process.env.IS_TEST) {
-    // Install Vue Devtools
-    try {
-      await installExtension(VUEJS_DEVTOOLS);
-    } catch (e) {
-      console.error('Vue Devtools failed to install:', e.toString());
-    }
-  }
+  // if (isDevelopment && !process.env.IS_TEST) {
+  //   // Install Vue Devtools
+  //   try {
+  //     await installExtension(VUEJS_DEVTOOLS);
+  //   } catch (e) {
+  //     console.error('Vue Devtools failed to install:', e.toString());
+  //   }
+  // }
   registerSafeFileProtocol();
   createWindow('main');
 });

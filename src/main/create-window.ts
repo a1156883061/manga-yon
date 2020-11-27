@@ -4,7 +4,10 @@ import { BrowserWindow } from 'electron';
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib';
 import { WindowInfo } from '@/interface';
 
-async function createWindow(winName: string) {
+async function createWindow(
+  winName: string,
+  comicPathInfo?: { comicPathMap: Map<number, string[]>; comicPaths: string[] }
+) {
   let bounds: Electron.Rectangle;
   let windowConfig: WindowInfo;
   if (winName == 'main') {
@@ -14,7 +17,6 @@ async function createWindow(winName: string) {
   }
 
   const boundTmp = windowConfig.windowConfig;
-  console.log('窗口信息', boundTmp);
   if (
     boundTmp == undefined ||
     Object.entries(boundTmp).length == 0 ||
@@ -43,6 +45,19 @@ async function createWindow(winName: string) {
       preload: path.join(__dirname, 'preload.js'),
     },
   });
+  if (comicPathInfo) {
+    comicPathInfo.comicPathMap.set(win.id, comicPathInfo.comicPaths);
+    win.on('ready-to-show', () => {
+      win.title = winName;
+    });
+  }
+  /*   if (process.env.NODE_ENV !== 'production') {
+    win.webContents.session.loadExtension(
+      path.resolve(
+        'C:/Users/TheCrown/AppData/Local/Microsoft/Edge/User Data/Default/Extensions/nhdogjmejiglipccpnnnanhbledajbpd'
+      )
+    );
+  } */
   if (windowConfig.isMaxSized) {
     win.hide();
     win.maximize();
@@ -53,16 +68,21 @@ async function createWindow(winName: string) {
     if (winName == 'main') {
       win.loadURL(SERVER_ADDRESS);
     } else {
-      win.loadURL(SERVER_ADDRESS + 'reader.html');
+      const readerUrl = new URL(
+        `?winId=${win.id}`,
+        SERVER_ADDRESS + 'reader.html/'
+      );
+      win.loadURL(readerUrl.toString());
+      // win.loadURL(SERVER_ADDRESS + 'reader.html');
     }
     if (!process.env.IS_TEST) win.webContents.openDevTools();
   } else {
     createProtocol('app');
     // Load the index.html when not in development
     if (winName == 'main') {
-      win.loadURL('app://./index.html');
+      win.loadURL(`app://./index.html/?winId=${win.id}`);
     } else {
-      win.loadURL('app://./reader.html');
+      win.loadURL(`app://./reader.html/?winId=${win.id}`);
     }
   }
   win.addListener('close', () => {

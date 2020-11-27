@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const ThreadsPlugin = require('threads-plugin');
-let chainConfig;
 /**@type {import('@vue/cli-service/types/ProjectOptions').ProjectOptions} */
 const webConfig = {
   pluginOptions: {
@@ -8,7 +7,9 @@ const webConfig = {
       preload: 'src/preload/preload-main.ts',
       builderOptions: {
         target: 'dir',
-        nsis: {},
+        win: {
+          target: 'dir',
+        },
         asarUnpack: ['0.worker.js'],
       },
       chainWebpackRendererProcess(config) {
@@ -42,7 +43,7 @@ const webConfig = {
       entry: 'src/reader-main.ts',
       template: 'public/index.html',
       filename: 'reader.html',
-      title: '阅读',
+      title: ' ',
     },
     // 当使用只有入口的字符串格式时，
     // 模板会被推导为 `public/subpage.html`
