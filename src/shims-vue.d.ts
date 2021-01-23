@@ -4,3 +4,11 @@ declare module '*.vue' {
   const component: DefineComponent<{}, {}, any>
   export default component
 }
+
+declare module 'leveldown' {
+  export default any;
+}
+
+declare module 'pouchdb-adapter-leveldb' {
+  export default any
+}

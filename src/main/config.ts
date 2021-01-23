@@ -104,11 +104,11 @@ function getWindowBounds(): Electron.Rectangle | string {
  */
 function saveWindowBoundsConfig(windowConfig: Electron.Rectangle) {
   console.log('executed save file');
-  fs.exists(configPath, (exists) => {
+  fs.access(configPath, (exists) => {
     if (exists) {
+      createConfigFile();
       writeWindowConfigToFile(windowConfig);
     } else {
-      createConfigFile();
       writeWindowConfigToFile(windowConfig);
     }
   });

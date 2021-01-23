@@ -7,6 +7,7 @@
           v-for="(comic, index) in comicSources"
           :key="index"
           @click="readComic(comic.path, comic.title, comic.isLoading)"
+          @contextmenu="showContext(comic.coverPath)"
         >
           <a-spin
             :spinning="comic.isLoading"
@@ -60,15 +61,18 @@
           comicSources.splice(index, 1);
           return;
         }
-        newComic.coverPath = convertToSafeFile(newComic.coverPath);
         newComic.isLoading = false;
-        for (let index = 0; index < newComic.path.length; index++) {
-          newComic.path[index] = convertToSafeFile(newComic.path[index]);
-        }
         comicSources[index] = newComic;
       }
       async function getComics() {
         console.log('get comics is coding');
+        const comics = (await window.ipcRenderer.invoke(
+          'get-store-comic'
+        )) as ComicSourceLoad[];
+        comics.forEach((each) => {
+          each.isLoading = false;
+          comicSources.push(each);
+        });
       }
       function readComic(
         comicPaths: string[],
@@ -81,11 +85,16 @@
         }
         window.ipcRenderer.invoke('read-comic', toRaw(comicPaths), title);
       }
+      function showContext(comicPath: string) {
+        console.log('菜单');
+      }
+
       getComics();
       return {
         comicSources,
         addComic,
         readComic,
+        showContext,
       };
     },
   });

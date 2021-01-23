@@ -5,6 +5,7 @@ const webConfig = {
   pluginOptions: {
     electronBuilder: {
       preload: 'src/preload/preload-main.ts',
+      asar: false,
       builderOptions: {
         target: 'dir',
         win: {

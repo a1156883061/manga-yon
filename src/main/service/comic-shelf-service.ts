@@ -6,6 +6,9 @@ import getParentDirName from '@/util/get-dir-name';
 import { ComicSource } from '@/interface';
 import naturalSort from 'javascript-natural-sort';
 import sortArrayByWorker from '@/util/sort-array-by-worker';
+import { comics as comicData } from '../../store/rxdb';
+import { FILE_PROTOCOL } from '../regist-protocol';
+
 const normalImageType: Electron.FileFilter = {
   extensions: ['jpg', 'jpeg', 'png'],
   name: '常规图片',
@@ -14,7 +17,7 @@ const normalImageType: Electron.FileFilter = {
 function getImgInDir(
   dirPath: string,
   reject: (reason?: unknown) => void,
-  resolve: (value?: string[]) => void
+  resolve: (value: string[]) => void
 ) {
   return fs.readdir(dirPath, (readFilesErr, files) => {
     if (readFilesErr) {
@@ -70,6 +73,7 @@ ipcMain.handle('add-comic', async () => {
     filters: [normalImageType],
     message: '请选择要导入的文件或文件夹',
     title: '导入漫画',
+    properties: ['openFile'],
   });
   if (returnValue.canceled) {
     return false;
@@ -84,5 +88,40 @@ ipcMain.handle('add-comic', async () => {
     coverPath: imgPaths[0],
     title: title,
   };
+  fileInfo.path = fileInfo.path.map((eachPath) => {
+    eachPath = FILE_PROTOCOL + eachPath;
+    return eachPath;
+  });
+  fileInfo.coverPath = fileInfo.path[0];
+  try {
+    const comic = await comicData;
+    comic.insert({
+      title: fileInfo.title,
+      path: fileInfo.path,
+    });
+  } catch (error) {
+    console.error('create rxdb or insert data error');
+    console.error(error);
+  }
   return fileInfo;
+});
+
+ipcMain.handle('get-store-comic', () => {
+  return new Promise((resolve) => {
+    const comicInfos: ComicSource[] = [];
+    comicData.then((comicDataCollection) => {
+      comicDataCollection
+        .find()
+        .exec()
+        .then((comics) => {
+          let comicInfo: ComicSource;
+          comics.map((eachComic) => {
+            comicInfo = eachComic.toJSON() as ComicSource;
+            comicInfo.coverPath = comicInfo.path[0];
+            comicInfos.push(comicInfo as ComicSource);
+          });
+          resolve(comicInfos);
+        });
+    });
+  });
 });
