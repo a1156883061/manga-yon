@@ -3,7 +3,6 @@ import {
   createRxDatabase,
   RxCollection,
   RxDatabase,
-  RxDocument,
   RxJsonSchema,
 } from 'rxdb';
 import { join } from 'path';
@@ -16,13 +15,11 @@ type ComicDocType = {
   path: string[];
 };
 
-type ComicDocument = RxDocument<ComicDocType>;
 type ComicCollection = RxCollection<ComicDocType>;
 type MyDatabaseCollections = {
   comics: ComicCollection;
 };
 type MyDatabase = RxDatabase<MyDatabaseCollections>;
-type ComicSchema = RxJsonSchema<ComicDocType>;
 console.log('path', join(currentFolder, 'comicData'));
 addRxPlugin(RxDBValidatePlugin);
 addRxPlugin(levelDBPlugin);
@@ -39,7 +36,6 @@ const comics = (async function() {
     properties: {
       title: {
         type: 'string',
-        primary: true,
       },
       path: {
         type: 'array',
