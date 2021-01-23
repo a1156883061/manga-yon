@@ -116,7 +116,8 @@ ipcMain.handle('get-store-comic', () => {
         .then((comics) => {
           let comicInfo: ComicSource;
           comics.map((eachComic) => {
-            comicInfo = eachComic.toJSON() as ComicSource;
+            comicInfo = (eachComic.toJSON() as unknown) as ComicSource;
+            console.log('comicInfo', comicInfo);
             comicInfo.coverPath = comicInfo.path[0];
             comicInfos.push(comicInfo as ComicSource);
           });
@@ -125,3 +126,16 @@ ipcMain.handle('get-store-comic', () => {
     });
   });
 });
+
+/**
+ * 删除对应的漫画
+ * @param path 要删除漫画的路径
+ */
+export async function deleteComicByPath(path: string) {
+  const comicDao = await comicData;
+  await comicDao
+    .findOne()
+    .where('path')
+    .eq(path)
+    .remove();
+}
