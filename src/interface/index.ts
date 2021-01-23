@@ -46,4 +46,13 @@ interface IpcMsg {
   data?: any;
 }
 
-export { ComicSource, Comic, WindowInfo, IpcMsg };
+/**
+ * IpcRender.handle 的返回值
+ */
+interface Response<T> {
+  code: number;
+  message: string;
+  data?: T;
+}
+
+export { ComicSource, Comic, WindowInfo, IpcMsg, Response };
