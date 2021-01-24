@@ -97,7 +97,10 @@ async function createWindow(
       bounds = win.getBounds();
       windowConfigNow = { isMaxSized: true, windowConfig: bounds };
     }
-    saveWindowBoundsConfig('reader', windowConfigNow);
+    saveWindowBoundsConfig(
+      winName == 'main' ? 'main' : 'reader',
+      windowConfigNow
+    );
   });
   return win;
 }
