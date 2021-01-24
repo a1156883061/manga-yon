@@ -10,11 +10,13 @@ import currentFolder from '@/util/get-exec-folder';
 import levelDBPlugin from 'pouchdb-adapter-leveldb';
 import leveldown from 'leveldown';
 import { RxDBValidatePlugin } from 'rxdb/plugins/validate';
+import IdGenerator from '@/main/util/IdGenerator';
+import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder';
 type ComicDocType = {
+  id?: string;
   title: string;
   path: string[];
 };
-
 type ComicCollection = RxCollection<ComicDocType>;
 type MyDatabaseCollections = {
   comics: ComicCollection;
@@ -23,6 +25,7 @@ type MyDatabase = RxDatabase<MyDatabaseCollections>;
 console.log('path', join(currentFolder, 'comicData'));
 addRxPlugin(RxDBValidatePlugin);
 addRxPlugin(levelDBPlugin);
+addRxPlugin(RxDBQueryBuilderPlugin);
 const comics = (async function() {
   const db: MyDatabase = await createRxDatabase<MyDatabaseCollections>({
     name: join(currentFolder, 'comicData'),
@@ -34,6 +37,10 @@ const comics = (async function() {
     type: 'object',
     version: 0,
     properties: {
+      id: {
+        type: 'string',
+        primary: true,
+      },
       title: {
         type: 'string',
       },
@@ -50,6 +57,7 @@ const comics = (async function() {
       schema: comicSchema,
     },
   });
+  IdGenerator(db.comics);
   return db.comics;
 })();
 export { comics };
