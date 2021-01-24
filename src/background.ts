@@ -3,6 +3,7 @@ import { app, protocol, BrowserWindow } from 'electron';
 // import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 import { registerSafeFileProtocol } from './main/regist-protocol';
 import './main/service';
+import '@/main/controller';
 import createWindow from './main/create-window';
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
