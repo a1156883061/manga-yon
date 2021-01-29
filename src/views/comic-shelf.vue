@@ -7,7 +7,7 @@
           v-for="(comic, index) in comicSources"
           :key="index"
           @click="readComic(comic.path, comic.title, comic.isLoading)"
-          @contextmenu="showContext(comic.coverPath)"
+          @contextmenu="showContext(comic)"
         >
           <a-spin
             :spinning="comic.isLoading"
@@ -20,6 +20,13 @@
             </div>
           </a-spin>
           <a-card-meta :title="comic.title"></a-card-meta>
+          <div class="action-container" v-if="comic.showActionFlag" @click.stop>
+            <a-button type="danger" block @click="deleteComic(comic.id)">
+              <template #icon>
+                <delete-filled />
+              </template>
+            </a-button>
+          </div>
         </a-card-grid>
       </template>
       <a-card-grid class="mo-card-grid mo-card-grid-add" @click="addComic">
@@ -30,24 +37,29 @@
 </template>
 
 <script lang="ts">
+  import { DeleteFilled } from '@ant-design/icons-vue';
   import iconComicShelf from '@/components/icon/icon-comic-shelf.vue';
   // import { ipcRenderer } from 'electron';
   import { ComicSource } from '@/interface';
-  import convertToSafeFile from '@/util/convert-to-safe-file';
-  import { defineComponent, reactive, ref, toRaw } from 'vue';
+  import request from '@/util/request';
+  import { defineComponent, reactive, toRaw } from 'vue';
 
   interface ComicSourceLoad extends ComicSource {
     isLoading?: boolean;
+    /**是否显示操作按钮 */
+    showActionFlag: boolean;
   }
 
   export default defineComponent({
-    components: { iconComicShelf },
+    components: { iconComicShelf, DeleteFilled },
     setup() {
       const comicSources = reactive<ComicSourceLoad[]>([]);
       async function addComic() {
         const index = comicSources.length;
         comicSources.push({
+          id: '',
           isLoading: true,
+          showActionFlag: false,
           path: [''],
           coverPath: '',
           title: '',
@@ -85,16 +97,25 @@
         }
         window.ipcRenderer.invoke('read-comic', toRaw(comicPaths), title);
       }
-      function showContext(comicPath: string) {
-        console.log('菜单');
+      function showContext(comicPath: ComicSourceLoad) {
+        comicPath.showActionFlag = !comicPath.showActionFlag;
       }
-
+      async function deleteComic(comicId: ComicSourceLoad['id']) {
+        try {
+          await request('comic-delete', comicId);
+          const index = comicSources.findIndex(({ id }) => id == comicId);
+          comicSources.splice(index, 1);
+        } catch {
+          console.log('delete fail');
+        }
+      }
       getComics();
       return {
         comicSources,
         addComic,
         readComic,
         showContext,
+        deleteComic,
       };
     },
   });
@@ -115,6 +136,7 @@
     content: none;
   }
   .mo-card-grid {
+    position: relative;
     cursor: pointer;
     user-select: none;
     width: 320px;
@@ -147,5 +169,20 @@
 
   .mo-card-grid ::v-deep(.ant-spin-nested-loading) {
     height: 90%;
+  }
+
+  .action-container {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    padding: 24px;
+    background: rgba(138, 145, 158, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: default;
   }
 </style>
