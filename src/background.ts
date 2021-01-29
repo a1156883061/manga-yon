@@ -5,7 +5,7 @@ import { registerSafeFileProtocol } from './main/regist-protocol';
 import './main/service';
 import '@/main/controller';
 import createWindow from './main/create-window';
-const isDevelopment = process.env.NODE_ENV !== 'production';
+const IS_DEVELOPMENT = process.env.NODE_ENV !== 'production';
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -44,7 +44,7 @@ app.on('ready', async () => {
 });
 
 // Exit cleanly on request from parent process in development mode.
-if (isDevelopment) {
+if (IS_DEVELOPMENT) {
   if (process.platform === 'win32') {
     process.on('message', (data) => {
       if (data === 'graceful-exit') {

@@ -44,7 +44,6 @@ function createConfigFile() {
   try {
     fs.mkdirSync(configDirPath);
     fs.writeFileSync(configPath, '{}', {});
-    console.log('write file');
   } catch {
     console.error('create file error');
   }
@@ -55,7 +54,6 @@ function createConfigFile() {
  * @param windowConfig  窗口信息
  */
 function writeWindowConfigToFile(windowConfig: Electron.Rectangle) {
-  console.log('save config file');
   fs.readFile(configPath, (err, data) => {
     if (err) {
       console.error('read config file failed');
@@ -103,7 +101,6 @@ function getWindowBounds(): Electron.Rectangle | string {
  * @param config 窗口信息
  */
 function saveWindowBoundsConfig(windowConfig: Electron.Rectangle) {
-  console.log('executed save file');
   fs.access(configPath, (exists) => {
     if (exists) {
       createConfigFile();

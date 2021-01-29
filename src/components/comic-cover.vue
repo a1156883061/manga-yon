@@ -18,7 +18,6 @@
     props: ['path'],
     setup(props) {
       const container = ref<HTMLDivElement>();
-      console.log('container', container);
       addCover(props.path, container.value);
       return {
         container,
