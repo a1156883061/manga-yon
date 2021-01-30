@@ -10,15 +10,17 @@ export default function(
   ) => Promise<void> | unknown
 ): void {
   ipcMain.handle(channel, (ipcEvent, args) => {
-    return new Promise<Response<unknown>>((resolve) => {
+    return new Promise<Response<unknown>>(async (resolve) => {
       const res: Response<unknown> = { code: 0, message: '' };
       try {
-        res.data = listener(ipcEvent, args);
+        res.data = await listener(ipcEvent, args);
         resolve(res);
       } catch (e) {
+        console.error('error', e);
         if (e instanceof MsgError) {
           res.code = e.code;
           res.message = e.message;
+          resolve(res);
         }
         res.code = 500;
         res.message = '后台应用错误';

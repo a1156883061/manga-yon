@@ -8,6 +8,7 @@ import naturalSort from 'javascript-natural-sort';
 import sortArrayByWorker from '@/util/sort-array-by-worker';
 import { comics as comicData } from '../../store/rxdb';
 import { FILE_PROTOCOL } from '../regist-protocol';
+import { MsgError } from '../util/MsgError';
 
 const normalImageType: Electron.FileFilter = {
   extensions: ['jpg', 'jpeg', 'png'],
@@ -69,12 +70,14 @@ function getImgFilePaths(filePath: string[]) {
 }
 
 ipcMain.handle('add-comic', async () => {
+  // 打开文件选择对话框
   const returnValue = await dialog.showOpenDialog({
     filters: [normalImageType],
     message: '请选择要导入的文件或文件夹',
     title: '导入漫画',
     properties: ['openFile'],
   });
+  // 获取选中文件失败时返回false
   if (returnValue.canceled) {
     return false;
   }
@@ -85,25 +88,24 @@ ipcMain.handle('add-comic', async () => {
   }
   const fileInfo: ComicSource = {
     path: imgPaths,
-    coverPath: imgPaths[0],
+    coverPath: '',
     title: title,
   };
   fileInfo.path = fileInfo.path.map((eachPath) => {
     eachPath = FILE_PROTOCOL + eachPath;
     return eachPath;
   });
-  fileInfo.coverPath = fileInfo.path[0];
   try {
     const comic = await comicData;
-    comic.insert({
+    const comicDocument = await comic.insert({
       title: fileInfo.title,
       path: fileInfo.path,
     });
+    return comicDocument.toJSON();
   } catch (error) {
     console.error('create rxdb or insert data error');
     console.error(error);
   }
-  return fileInfo;
 });
 
 ipcMain.handle('get-store-comic', () => {
@@ -131,11 +133,13 @@ ipcMain.handle('get-store-comic', () => {
  * @param id 要删除漫画的id
  */
 export async function deleteComicByPath(id: string) {
+  if (id == undefined) {
+    throw new MsgError('id错误');
+  }
   const comicDao = await comicData;
   await comicDao
     .findOne()
-    .where('ppp')
+    .where('id')
     .eq(id)
     .remove();
-  console.trace('删除成功');
 }
