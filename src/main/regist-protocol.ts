@@ -9,7 +9,7 @@ export function registerSafeFileProtocol() {
     try {
       return callback({ path: path.normalize(decodeURI(url)) });
     } catch (error) {
-      console.log('load file error', error);
+      console.error('load file error', error);
     }
   });
 }
