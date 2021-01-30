@@ -22,7 +22,6 @@ type MyDatabaseCollections = {
   comics: ComicCollection;
 };
 type MyDatabase = RxDatabase<MyDatabaseCollections>;
-console.log('path', join(currentFolder, 'comicData'));
 addRxPlugin(RxDBValidatePlugin);
 addRxPlugin(levelDBPlugin);
 addRxPlugin(RxDBQueryBuilderPlugin);
@@ -38,8 +37,7 @@ const comics = (async function() {
     version: 0,
     properties: {
       id: {
-        type: 'string',
-        primary: true,
+        type: 'number',
       },
       title: {
         type: 'string',
@@ -51,6 +49,7 @@ const comics = (async function() {
         },
       },
     },
+    indexes: ['id'],
   };
   await db.addCollections({
     comics: {

@@ -11,10 +11,11 @@ export default function(rxCollection: RxCollection) {
       .exec();
     debugger;
     if (lastIdDocument == null) {
-      data.id = '1';
+      data.id = 1;
       return;
     }
     const lastId = lastIdDocument.get('id');
-    data.id = String(Number.parseInt(lastId) + 1);
+    console.log('lastId', lastId);
+    data.id = lastId + 1;
   }, false);
 }

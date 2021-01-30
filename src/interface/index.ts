@@ -1,4 +1,5 @@
 interface ComicSource {
+  id?: number;
   path: string[];
   title: string;
   coverPath: string;
