@@ -39,7 +39,6 @@
 <script lang="ts">
   import { DeleteFilled } from '@ant-design/icons-vue';
   import iconComicShelf from '@/components/icon/icon-comic-shelf.vue';
-  // import { ipcRenderer } from 'electron';
   import { ComicSource } from '@/interface';
   import request from '@/util/request';
   import { defineComponent, reactive, toRaw } from 'vue';
@@ -74,10 +73,10 @@
           return;
         }
         newComic.isLoading = false;
+        newComic.coverPath = newComic.path[0];
         comicSources[index] = newComic;
       }
       async function getComics() {
-        console.log('get comics is coding');
         const comics = (await window.ipcRenderer.invoke(
           'get-store-comic'
         )) as ComicSourceLoad[];
@@ -91,7 +90,6 @@
         title: string,
         isLoading?: boolean
       ) {
-        console.log('is loading', isLoading);
         if (isLoading || isLoading == undefined) {
           return;
         }
