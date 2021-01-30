@@ -56,7 +56,7 @@
       async function addComic() {
         const index = comicSources.length;
         comicSources.push({
-          id: '',
+          id: 0,
           isLoading: true,
           showActionFlag: false,
           path: [''],
