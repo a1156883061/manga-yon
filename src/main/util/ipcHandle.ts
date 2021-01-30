@@ -10,6 +10,7 @@ export default function(
   ) => Promise<void> | unknown
 ): void {
   ipcMain.handle(channel, (ipcEvent, args) => {
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise<Response<unknown>>(async (resolve) => {
       const res: Response<unknown> = { code: 0, message: '' };
       try {
