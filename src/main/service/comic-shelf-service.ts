@@ -1,4 +1,4 @@
-import { ipcMain, dialog } from 'electron';
+import { ipcMain, dialog, BrowserWindow } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import isImage from '@/util/is-image';
@@ -69,14 +69,17 @@ function getImgFilePaths(filePath: string[]) {
   });
 }
 
-ipcMain.handle('add-comic', async () => {
+ipcMain.handle('add-comic', async (mainEvent) => {
   // 打开文件选择对话框
-  const returnValue = await dialog.showOpenDialog({
-    filters: [normalImageType],
-    message: '请选择要导入的文件或文件夹',
-    title: '导入漫画',
-    properties: ['openFile'],
-  });
+  const returnValue = await dialog.showOpenDialog(
+    BrowserWindow.fromId(mainEvent.frameId),
+    {
+      filters: [normalImageType],
+      message: '请选择要导入的文件或文件夹',
+      title: '导入漫画',
+      properties: ['openFile'],
+    }
+  );
   // 获取选中文件失败时返回false
   if (returnValue.canceled) {
     return false;
