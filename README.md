@@ -1,4 +1,4 @@
-# manga-yon
+# manga-yon: a comic reader built by electron
 
 ## Project setup
 ```
