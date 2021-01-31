@@ -31,7 +31,11 @@
 
 <script lang="ts">
   import { Comic, IpcMsg } from '@/interface';
+  import request from '@/util/request';
   import { defineComponent, onMounted, reactive, Ref, ref } from 'vue';
+
+  /**默认宽度百分比 */
+  const WIDTH_PERCENT = 0.9;
 
   export default defineComponent({
     setup() {
@@ -63,9 +67,17 @@
       /**
        * 初始化宽度
        */
-      function initWidth() {
+      async function initWidth() {
         const width = container.value.getBoundingClientRect().width;
-        contentWidth.value = width * 0.9;
+        try {
+          let widthPercent = await request('reader/get-width');
+          if (widthPercent > WIDTH_PERCENT) {
+            widthPercent = WIDTH_PERCENT;
+          }
+          contentWidth.value = width * widthPercent;
+        } catch {
+          contentWidth.value = width * WIDTH_PERCENT;
+        }
       }
       /**
        * 鼠标拖动改变宽度
@@ -82,14 +94,33 @@
         }
       }
       /**
-       * 拖动方向
+       * 拖动开始回调函数
+       * @param _e 事件
+       * @param dir 拖动的方向
        */
       function dragStart(_e: Event, dir = 1) {
         direction.value = dir;
         dragFlag.value = true;
         resizeState.value = 'ew-resize';
       }
+
+      function saveWidth() {
+        // 获取宽度百分比
+        const widthPercent =
+          contentWidth.value / container.value.getBoundingClientRect().width;
+        console.table({
+          parentWidth: container.value.getBoundingClientRect().width,
+          contentWidth,
+          percent: widthPercent,
+        });
+        request('reader/save-width', widthPercent);
+      }
+
       function dragEnd() {
+        // 保存函数在更改宽度时才执行
+        if (dragFlag.value) {
+          saveWidth();
+        }
         dragFlag.value = false;
         resizeState.value = 'unset';
       }
