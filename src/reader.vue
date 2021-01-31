@@ -1,7 +1,6 @@
 <template>
   <div id="app">
     <reader-container />
-    <a-button />
   </div>
 </template>
 
@@ -9,11 +8,10 @@
   import { defineComponent } from 'vue';
   import readerContainer from '@/views/reader/reader-container.vue';
 
-  import aButton from 'ant-design-vue/lib/button';
   import 'ant-design-vue/lib/button/style/css';
 
   export default defineComponent({
-    components: { readerContainer, aButton },
+    components: { readerContainer },
   });
 </script>
 
