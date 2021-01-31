@@ -1,20 +1,5 @@
+import { Channel } from '@/interface/Api';
 import message from 'ant-design-vue/lib/message';
-
-/**
- * 返回结构体
- */
-interface Response<T> {
-  code: number;
-  message?: string;
-  data?: T;
-}
-
-/**
- * 请求的Channel对应的返回值
- */
-interface Channel {
-  'comic-delete': Response<void>;
-}
 
 /**
  * 使用IpcRender.invoke的形式请求Node
