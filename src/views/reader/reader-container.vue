@@ -1,6 +1,18 @@
 <template>
-  <div class="container">
-    <div class="content resize">
+  <div
+    ref="container"
+    class="container"
+    :style="{ cursor: resizeState }"
+    @mousemove.passive="resize"
+    @mouseup="dragEnd"
+    @mouseleave="dragEnd"
+  >
+    <div
+      class="resize-bar left-resize-bar"
+      @mousedown="dragStart(-1)"
+      @dragstart.prevent
+    ></div>
+    <div class="content" :style="{ width: contentWidth + 'px' }">
       <div
         v-for="(comic, index) in comics.path"
         :key="index"
@@ -9,19 +21,34 @@
         <img :src="comic" :alt="comic" class="comic-img" />
       </div>
     </div>
+    <div
+      class="resize-bar right-resize-bar"
+      @mousedown="dragStart"
+      @dragstart.prevent
+    ></div>
   </div>
 </template>
 
 <script lang="ts">
   import { Comic, IpcMsg } from '@/interface';
-  import { defineComponent, reactive } from 'vue';
+  import { defineComponent, onMounted, reactive, Ref, ref } from 'vue';
 
   export default defineComponent({
     setup() {
+      /** 显示的漫画数据 */
       const comics: Comic = reactive({
         path: [],
         title: '',
       });
+      /** 显示宽度 */
+      const contentWidth = ref(0);
+      const dragFlag = ref(false);
+      const direction = ref(1);
+      const resizeState = ref('unset');
+      const container = (ref(null) as unknown) as Ref<HTMLDivElement>;
+      /**
+       * 获取漫画的地址
+       */
       async function getComicPath() {
         const winId = new URL(window.location.href).searchParams.get('winId');
         window.ipcRenderer
@@ -33,9 +60,53 @@
             }
           });
       }
+      /**
+       * 初始化宽度
+       */
+      function initWidth() {
+        const width = container.value.getBoundingClientRect().width;
+        contentWidth.value = width * 0.9;
+      }
+      /**
+       * 鼠标拖动改变宽度
+       */
+      function resize(mouseEvent: MouseEvent) {
+        if (dragFlag.value) {
+          if (mouseEvent.buttons != 1) {
+            return;
+          }
+          console.log('dir', direction.value);
+          console.log('mouse', mouseEvent);
+          contentWidth.value += mouseEvent.movementX * 1.55 * direction.value;
+          console.log('width', contentWidth.value);
+        }
+      }
+      /**
+       * 拖动方向
+       */
+      function dragStart(_e: Event, dir = 1) {
+        direction.value = dir;
+        dragFlag.value = true;
+        resizeState.value = 'ew-resize';
+      }
+      function dragEnd() {
+        dragFlag.value = false;
+        resizeState.value = 'unset';
+      }
       getComicPath();
+      onMounted(() => {
+        initWidth();
+      });
       return {
         comics,
+        contentWidth,
+        dragFlag,
+        initWidth,
+        resizeState,
+        container,
+        resize,
+        dragStart,
+        dragEnd,
       };
     },
   });
@@ -56,20 +127,24 @@
     width: 90%;
     max-width: 98%;
     min-width: 300px;
+    user-select: none;
   }
 
   .resize {
     position: relative;
   }
 
-  .resize::before {
+  .left-resize-bar,
+  .right-resize-bar {
     content: '';
     display: block;
-    position: absolute;
-    right: 0;
-    top: 0;
     width: 3px;
-    height: 100vh;
+    cursor: col-resize;
+    cursor: ew-resize;
     background: red;
+  }
+
+  .right-resize-bar {
+    left: 0;
   }
 </style>
