@@ -30,7 +30,7 @@
 </template>
 
 <script lang="ts">
-  import { Comic, IpcMsg } from '@/interface';
+  import { Comic } from '@/interface';
   import request from '@/util/request';
   import { defineComponent, onMounted, reactive, Ref, ref } from 'vue';
 
@@ -55,14 +55,9 @@
        */
       async function getComicPath() {
         const winId = new URL(window.location.href).searchParams.get('winId');
-        window.ipcRenderer
-          .invoke('get-comic', Number(winId))
-          .then((returnData: IpcMsg) => {
-            if (returnData.code == 0) {
-              comics.path = returnData.data;
-              return;
-            }
-          });
+        request('get-comic', Number(winId)).then((returnData: string[]) => {
+          comics.path = returnData;
+        });
       }
       /**
        * 初始化宽度

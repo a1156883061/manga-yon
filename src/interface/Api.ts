@@ -1,3 +1,5 @@
+import { ComicSource } from '.';
+
 /**
  * 返回结构体
  */
@@ -23,6 +25,14 @@ interface Channel {
    * 获取宽度百分比
    */
   'reader/get-width': number;
+
+  'add-comic': ComicSource | false;
+
+  'get-store-comic': ComicSource[];
+
+  'read-comic': void;
+
+  'get-comic': string[];
 }
 
 export { Channel, Response };

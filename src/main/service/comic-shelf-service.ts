@@ -1,4 +1,4 @@
-import { ipcMain, dialog, BrowserWindow } from 'electron';
+import { dialog, BrowserWindow, IpcMainInvokeEvent } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import isImage from '@/util/is-image';
@@ -69,7 +69,11 @@ function getImgFilePaths(filePath: string[]) {
   });
 }
 
-ipcMain.handle('add-comic', async (mainEvent) => {
+/**
+ * 从文件添加漫画
+ * @param mainEvent 事件
+ */
+export async function addComic(mainEvent: IpcMainInvokeEvent) {
   // 打开文件选择对话框
   const returnValue = await dialog.showOpenDialog(
     BrowserWindow.fromId(mainEvent.frameId),
@@ -94,42 +98,44 @@ ipcMain.handle('add-comic', async (mainEvent) => {
     coverPath: '',
     title: title,
   };
+  // 添加safe-file前缀
   fileInfo.path = fileInfo.path.map((eachPath) => {
     eachPath = FILE_PROTOCOL + eachPath;
     return eachPath;
   });
-  try {
-    const comic = await comicData;
-    const comicDocument = await comic.insert({
-      title: fileInfo.title,
-      path: fileInfo.path,
-    });
-    return comicDocument.toJSON();
-  } catch (error) {
-    console.error('create rxdb or insert data error');
-    console.error(error);
-  }
-});
-
-ipcMain.handle('get-store-comic', () => {
-  return new Promise((resolve) => {
-    const comicInfos: ComicSource[] = [];
-    comicData.then((comicDataCollection) => {
-      comicDataCollection
-        .find()
-        .exec()
-        .then((comics) => {
-          let comicInfo: ComicSource;
-          comics.map((eachComic) => {
-            comicInfo = (eachComic.toJSON() as unknown) as ComicSource;
-            comicInfo.coverPath = comicInfo.path[0];
-            comicInfos.push(comicInfo as ComicSource);
-          });
-          resolve(comicInfos);
-        });
-    });
+  // 将数据添加到数据库
+  const comic = await comicData;
+  const comicDocument = await comic.insert({
+    title: fileInfo.title,
+    path: fileInfo.path,
   });
-});
+  return comicDocument.toJSON();
+}
+
+/**
+ * 获取添加的漫画
+ */
+export function getComic() {
+  return new Promise((resolve, reject) => {
+    const comicInfos: ComicSource[] = [];
+    comicData
+      .then((comicDataCollection) => {
+        comicDataCollection
+          .find()
+          .exec()
+          .then((comics) => {
+            let comicInfo: ComicSource;
+            comics.map((eachComic) => {
+              comicInfo = (eachComic.toJSON() as unknown) as ComicSource;
+              comicInfo.coverPath = comicInfo.path[0];
+              comicInfos.push(comicInfo as ComicSource);
+            });
+            resolve(comicInfos);
+          });
+      })
+      .catch(() => reject(new MsgError('get comic error')));
+  });
+}
 
 /**
  * 删除对应的漫画

@@ -63,9 +63,9 @@
           coverPath: '',
           title: '',
         });
-        const newComic = (await window.ipcRenderer.invoke(
+        const newComic = ((await request(
           'add-comic'
-        )) as ComicSourceLoad;
+        )) as unknown) as ComicSourceLoad;
         comicSources[index] = reactive(comicSources[index]);
         comicSources[index].isLoading = false;
         if (typeof newComic == 'boolean') {
@@ -77,9 +77,7 @@
         comicSources[index] = newComic;
       }
       async function getComics() {
-        const comics = (await window.ipcRenderer.invoke(
-          'get-store-comic'
-        )) as ComicSourceLoad[];
+        const comics = (await request('get-store-comic')) as ComicSourceLoad[];
         comics.forEach((each) => {
           each.isLoading = false;
           comicSources.push(each);
@@ -93,7 +91,7 @@
         if (isLoading || isLoading == undefined) {
           return;
         }
-        window.ipcRenderer.invoke('read-comic', toRaw(comicPaths), title);
+        request('read-comic', toRaw(comicPaths), title);
       }
       function showContext(comicPath: ComicSourceLoad) {
         comicPath.showActionFlag = !comicPath.showActionFlag;
