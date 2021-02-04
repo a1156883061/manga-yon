@@ -1,13 +1,12 @@
 import { ipcMain, IpcMainInvokeEvent } from 'electron';
 import { Response } from '@/interface';
 import { MsgError } from './MsgError';
+import { Channel } from '@/interface/Api';
 
-export default function(
-  channel: string,
-  listener: (
-    event: IpcMainInvokeEvent,
-    ...args: any[]
-  ) => Promise<void> | unknown
+export default function<K extends keyof Channel, T extends Channel>(
+  channel: K,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  listener: (event: IpcMainInvokeEvent, ...args: any[]) => Promise<T[K]> | T[K]
 ): void {
   ipcMain.handle(channel, (ipcEvent, ...args) => {
     // eslint-disable-next-line no-async-promise-executor

@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 import createWindow from '../create-window';
-import { IpcMsg } from '@/interface';
+import { MsgError } from '../util/MsgError';
 
 const comicPathMap = new Map<number, string[]>();
 
@@ -29,5 +29,10 @@ export function readComicBack() {
  * @param winId 阅读器窗口的窗口ID
  */
 export function getComic(winId: number) {
-  return comicPathMap.get(winId);
+  const comicPaths = comicPathMap.get(winId);
+  if (comicPaths) {
+    return comicPaths;
+  } else {
+    throw new MsgError('comic not found');
+  }
 }

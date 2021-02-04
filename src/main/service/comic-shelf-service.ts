@@ -79,9 +79,9 @@ export async function addComic(mainEvent: IpcMainInvokeEvent) {
     BrowserWindow.fromId(mainEvent.frameId),
     {
       filters: [normalImageType],
-      message: '请选择要导入的文件或文件夹',
+      message: '请选择要导入的文件',
       title: '导入漫画',
-      properties: ['openFile'],
+      properties: ['openFile', 'multiSelections'],
     }
   );
   // 获取选中文件失败时返回false
@@ -115,13 +115,14 @@ export async function addComic(mainEvent: IpcMainInvokeEvent) {
 /**
  * 获取添加的漫画
  */
-export function getComic() {
-  return new Promise((resolve, reject) => {
+export function getComic(): Promise<ComicSource[]> {
+  return new Promise<ComicSource[]>((resolve, reject) => {
     const comicInfos: ComicSource[] = [];
     comicData
       .then((comicDataCollection) => {
         comicDataCollection
           .find()
+          .sort({ id: 'asc' })
           .exec()
           .then((comics) => {
             let comicInfo: ComicSource;

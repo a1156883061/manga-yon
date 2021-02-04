@@ -1,3 +1,4 @@
+import { ComicDocType } from '@/store/rxdb';
 import { ComicSource } from '.';
 
 /**
@@ -26,7 +27,9 @@ interface Channel {
    */
   'reader/get-width': number;
 
-  'add-comic': ComicSource | false;
+  'add-comic': ComicDocType | false;
+
+  'add-comic-folder': ComicDocType | false;
 
   'get-store-comic': ComicSource[];
 

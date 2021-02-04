@@ -12,7 +12,7 @@ import leveldown from 'leveldown';
 import { RxDBValidatePlugin } from 'rxdb/plugins/validate';
 import IdGenerator from '@/main/util/IdGenerator';
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder';
-type ComicDocType = {
+export type ComicDocType = {
   id?: string;
   title: string;
   path: string[];
