@@ -102,7 +102,7 @@
           const index = comicSources.findIndex(({ id }) => id == comicId);
           comicSources.splice(index, 1);
         } catch {
-          console.log('delete fail');
+          console.error('delete fail');
         }
       }
       getComics();
