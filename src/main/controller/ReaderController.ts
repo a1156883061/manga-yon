@@ -7,7 +7,6 @@ ipcHandle('get-comic', (e, winId: number) => {
 });
 
 ipcHandle('reader/save-width', (mainEvent, width: number) => {
-  console.log('width', width);
   saveReaderWidth(width);
 });
 

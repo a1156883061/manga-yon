@@ -15,7 +15,6 @@ export default function(rxCollection: RxCollection) {
       return;
     }
     const lastId = lastIdDocument.get('id');
-    console.log('lastId', lastId);
     data.id = lastId + 1;
   }, false);
 }

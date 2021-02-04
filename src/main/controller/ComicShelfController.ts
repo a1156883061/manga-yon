@@ -18,7 +18,6 @@ ipcHandle('get-store-comic', async () => {
 });
 
 ipcHandle('read-comic', (e, comicPaths: string[], title = 'reader') => {
-  console.log({ comicPaths, title });
   readComic(comicPaths, title);
 });
 

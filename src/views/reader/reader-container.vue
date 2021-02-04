@@ -82,10 +82,7 @@
           if (mouseEvent.buttons != 1) {
             return;
           }
-          console.log('dir', direction.value);
-          console.log('mouse', mouseEvent);
           contentWidth.value += mouseEvent.movementX * 1.55 * direction.value;
-          console.log('width', contentWidth.value);
         }
       }
       /**
