@@ -133,10 +133,8 @@
       }
       async function deleteComic(comicId: ComicSourceLoad['id']) {
         try {
-          console.table({ comicId, comicSources });
           await request('comic-delete', comicId);
           const index = comicSources.findIndex(({ id }) => id == comicId);
-          console.table({ index });
           comicSources.splice(index, 1);
         } catch {
           console.error('delete fail');

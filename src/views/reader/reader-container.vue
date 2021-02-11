@@ -100,11 +100,6 @@
         // 获取宽度百分比
         const widthPercent =
           contentWidth.value / container.value.getBoundingClientRect().width;
-        console.table({
-          parentWidth: container.value.getBoundingClientRect().width,
-          contentWidth,
-          percent: widthPercent,
-        });
         request('reader/save-width', widthPercent);
       }
 
