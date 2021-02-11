@@ -23,7 +23,7 @@
     </div>
     <div
       class="resize-bar right-resize-bar"
-      @mousedown="dragStart"
+      @mousedown="dragStart()"
       @dragstart.prevent
     ></div>
   </div>
@@ -90,7 +90,7 @@
        * @param _e 事件
        * @param dir 拖动的方向
        */
-      function dragStart(_e: Event, dir = 1) {
+      function dragStart(dir = 1) {
         direction.value = dir;
         dragFlag.value = true;
         resizeState.value = 'ew-resize';
