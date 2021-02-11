@@ -1,6 +1,9 @@
 import { Channel } from '@/interface/Api';
 import { message } from 'ant-design-vue';
 
+/** 提示消息显示时间 3s */
+const MSG_INTERVAL = 3;
+
 /**
  * 使用IpcRender.invoke的形式请求Node
  * @param channel 请求名
@@ -17,11 +20,11 @@ export default async function<K extends keyof Channel, T extends Channel>(
     return res.data;
   }
   if (res.code > 500) {
-    message.error(res.message);
+    message.error(res.message, MSG_INTERVAL);
     console.error('error', res.message);
     throw new Error(res.message);
   }
-  message.warning(res.message);
+  message.warning(res.message, MSG_INTERVAL);
   console.error('error', res.message);
   throw new Error(res.message);
 }
