@@ -1,5 +1,5 @@
 import { Channel } from '@/interface/Api';
-import message from 'ant-design-vue/lib/message';
+import { message } from 'ant-design-vue';
 
 /**
  * 使用IpcRender.invoke的形式请求Node
