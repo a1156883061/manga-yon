@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const ThreadsPlugin = require('threads-plugin');
+const tsImportPluginFactory = require('ts-import-plugin');
 /**@type {import('@vue/cli-service/types/ProjectOptions').ProjectOptions} */
 const webConfig = {
   pluginOptions: {
@@ -24,6 +25,28 @@ const webConfig = {
           .use(ThreadsPlugin, [{ target: 'electron-node-worker' }]);
       },
     },
+  },
+  parallel: true,
+  chainWebpack(config) {
+    config.module
+      .rule('ts')
+      .use('ts-loader')
+      .tap((options) =>
+        Object.assign(options, {
+          getCustomTransformers: () => ({
+            before: [
+              tsImportPluginFactory(
+                /** options */
+                {
+                  libraryName: 'ant-design-vue',
+                  libraryDirectory: 'es',
+                  style: 'css',
+                }
+              ),
+            ],
+          }),
+        })
+      );
   },
   pages: {
     index: {
