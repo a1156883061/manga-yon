@@ -1,6 +1,5 @@
 import { ipcMain, IpcMainInvokeEvent } from 'electron';
 import { Response } from '@/interface';
-import { MsgError } from './MsgError';
 import { Channel } from '@/interface/Api';
 
 export default function<K extends keyof Channel, T extends Channel>(
@@ -16,11 +15,12 @@ export default function<K extends keyof Channel, T extends Channel>(
         res.data = await listener(ipcEvent, ...args);
         resolve(res);
       } catch (e) {
-        console.error('error', e);
-        if (e instanceof MsgError) {
+        // 如果错误类型为MsgError，则返回自定义消息
+        if (Object.getPrototypeOf(e).constructor.name == 'MsgError') {
           res.code = e.code;
           res.message = e.message;
           resolve(res);
+          return;
         }
         res.code = 500;
         res.message = '后台应用错误';
