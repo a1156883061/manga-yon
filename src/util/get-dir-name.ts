@@ -12,4 +12,17 @@ function getParentDirName(filePath: string) {
     .pop();
 }
 
+/**
+ * 获取对应文件夹路径的名称
+ * @param dirPath 文件夹路径
+ */
+export function getDirName(dirPath: string): string {
+  const dirPathTmp = path.resolve(dirPath);
+  const dirName = dirPathTmp.split(path.sep).pop();
+  if (dirName) {
+    return dirName;
+  }
+  return 'unknown';
+}
+
 export default getParentDirName;

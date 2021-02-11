@@ -1,20 +1,19 @@
 import { RxCollection } from 'rxdb';
 
-export default function(rxCollection: RxCollection) {
-  rxCollection.preInsert(async (data) => {
+export default async function(rxCollection: RxCollection) {
+  const lastIdDocument = await rxCollection
+    .findOne()
+    .sort({ id: 'desc' })
+    .exec();
+  let lastId = 0;
+  if (lastIdDocument != null) {
+    lastId = lastIdDocument.get('id');
+  }
+  rxCollection.preInsert((data) => {
     if (data.id) {
       return;
     }
-    const lastIdDocument = await rxCollection
-      .findOne()
-      .sort({ id: 'desc' })
-      .exec();
-    debugger;
-    if (lastIdDocument == null) {
-      data.id = 1;
-      return;
-    }
-    const lastId = lastIdDocument.get('id');
-    data.id = lastId + 1;
+    lastId += 1;
+    data.id = lastId;
   }, false);
 }

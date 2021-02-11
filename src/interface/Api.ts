@@ -29,7 +29,7 @@ interface Channel {
 
   'add-comic': ComicDocType | false;
 
-  'add-comic-folder': ComicDocType | false;
+  'add-comic-folder': ComicDocType[] | false;
 
   'get-store-comic': ComicSource[];
 

@@ -2,11 +2,11 @@ import { dialog, BrowserWindow, IpcMainInvokeEvent } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import isImage from '@/util/is-image';
-import getParentDirName from '@/util/get-dir-name';
+import getParentDirName, { getDirName } from '@/util/get-dir-name';
 import { ComicSource } from '@/interface';
 import naturalSort from 'javascript-natural-sort';
 import sortArrayByWorker from '@/util/sort-array-by-worker';
-import { comics as comicData } from '../../store/rxdb';
+import { ComicDocType, comics as comicData } from '../../store/rxdb';
 import { FILE_PROTOCOL } from '../regist-protocol';
 import { MsgError } from '../util/MsgError';
 
@@ -110,6 +110,50 @@ export async function addComic(mainEvent: IpcMainInvokeEvent) {
     path: fileInfo.path,
   });
   return comicDocument.toJSON();
+}
+
+export async function addComicFolder(mainEvent: IpcMainInvokeEvent) {
+  // 打开文件夹选择对话框
+  const returnValue = await dialog.showOpenDialog(
+    BrowserWindow.fromId(mainEvent.frameId),
+    {
+      message: '请选择要导入的文件夹',
+      title: '导入漫画',
+      properties: ['openDirectory', 'multiSelections'],
+    }
+  );
+  // 获取选中文件失败时返回false
+  if (returnValue.canceled) {
+    throw new MsgError('open folder canceled');
+  }
+  return returnValue.filePaths.map((file) => {
+    const comicPathList = new Promise<string[]>((resolve, reject) => {
+      getImgInDir(file, reject, resolve);
+    });
+    return new Promise<ComicDocType>((resolve, reject) => {
+      comicPathList
+        .then(async (paths) => {
+          const fileInfo: ComicSource = {
+            path: paths,
+            coverPath: '',
+            title: getDirName(file),
+          };
+          // 添加safe-file前缀
+          fileInfo.path = fileInfo.path.map((eachPath) => {
+            eachPath = FILE_PROTOCOL + eachPath;
+            return eachPath;
+          });
+          // 将数据添加到数据库
+          const comic = await comicData;
+          const comicDocument = await comic.insert({
+            title: fileInfo.title,
+            path: fileInfo.path,
+          });
+          resolve(comicDocument.toJSON());
+        })
+        .catch(() => reject(new MsgError('add comic error')));
+    });
+  });
 }
 
 /**

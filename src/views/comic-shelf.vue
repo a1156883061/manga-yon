@@ -29,15 +29,20 @@
           </div>
         </a-card-grid>
       </template>
-      <a-card-grid class="mo-card-grid mo-card-grid-add" @click="addComic">
-        <icon-comic-shelf style="text-align:center" />
+      <a-card-grid class="mo-card-grid mo-card-grid-add">
+        <div class="open-file-btn ant-btn" @click="addComic()">
+          <icon-comic-shelf style="text-align:center" />
+        </div>
+        <div class="open-file-btn ant-btn" @click="addComicFolder">
+          <folder-open-filled style="text-align:center;font-size: 50px" />
+        </div>
       </a-card-grid>
     </a-card>
   </div>
 </template>
 
 <script lang="ts">
-  import { DeleteFilled } from '@ant-design/icons-vue';
+  import { DeleteFilled, FolderOpenFilled } from '@ant-design/icons-vue';
   import iconComicShelf from '@/components/icon/icon-comic-shelf.vue';
   import { ComicSource } from '@/interface';
   import request from '@/util/request';
@@ -50,10 +55,12 @@
   }
 
   export default defineComponent({
-    components: { iconComicShelf, DeleteFilled },
+    components: { iconComicShelf, DeleteFilled, FolderOpenFilled },
     setup() {
       const comicSources = reactive<ComicSourceLoad[]>([]);
-      async function addComic() {
+      async function addComic(
+        channel: 'add-comic' | 'add-comic-folder' = 'add-comic'
+      ) {
         const index = comicSources.length;
         comicSources.push({
           id: 0,
@@ -63,19 +70,47 @@
           coverPath: '',
           title: '',
         });
-        const newComic = ((await request(
-          'add-comic'
-        )) as unknown) as ComicSourceLoad;
-        comicSources[index] = reactive(comicSources[index]);
-        comicSources[index].isLoading = false;
-        if (typeof newComic == 'boolean') {
+        try {
+          const newComic = ((await request(channel)) as unknown) as
+            | ComicSourceLoad
+            | ComicSourceLoad[];
+          comicSources[index] = reactive(comicSources[index]);
+          comicSources[index].isLoading = false;
+          if (typeof newComic == 'boolean') {
+            comicSources.splice(index, 1);
+            return;
+          }
+          if (!(newComic instanceof Array)) {
+            newComic.isLoading = false;
+            newComic.coverPath = newComic.path[0];
+            comicSources[index] = newComic;
+            return;
+          }
+          if (newComic.length > 0) {
+            newComic[0].isLoading = false;
+            newComic[0].coverPath = newComic[0].path[0];
+            comicSources[index] = newComic[0];
+          } else {
+            comicSources.splice(index, 1);
+          }
+          for (let index = 1; index < newComic.length; index++) {
+            const element = newComic[index];
+            element.isLoading = false;
+            element.coverPath = element.path[0];
+            comicSources.push(element);
+          }
+        } catch {
           comicSources.splice(index, 1);
-          return;
         }
-        newComic.isLoading = false;
-        newComic.coverPath = newComic.path[0];
-        comicSources[index] = newComic;
       }
+
+      /**
+       * 从文件夹中添加漫画
+       */
+      async function addComicFolder() {
+        addComic('add-comic-folder');
+      }
+
       async function getComics() {
         const comics = (await request('get-store-comic')) as ComicSourceLoad[];
         comics.forEach((each) => {
@@ -98,8 +133,10 @@
       }
       async function deleteComic(comicId: ComicSourceLoad['id']) {
         try {
+          console.table({ comicId, comicSources });
           await request('comic-delete', comicId);
           const index = comicSources.findIndex(({ id }) => id == comicId);
+          console.table({ index });
           comicSources.splice(index, 1);
         } catch {
           console.error('delete fail');
@@ -109,6 +146,7 @@
       return {
         comicSources,
         addComic,
+        addComicFolder,
         readComic,
         showContext,
         deleteComic,
@@ -159,8 +197,9 @@
 
   .mo-card-grid-add {
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: stretch;
   }
 
   .mo-card-grid ::v-deep(.ant-spin-nested-loading) {
@@ -180,5 +219,12 @@
     justify-content: center;
     align-items: center;
     cursor: default;
+  }
+
+  .open-file-btn {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 </style>
