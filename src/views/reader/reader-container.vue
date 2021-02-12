@@ -4,8 +4,6 @@
     class="container"
     :style="{ cursor: resizeState }"
     @mousemove.passive="resize"
-    @mouseup="dragEnd"
-    @mouseleave="dragEnd"
   >
     <div
       class="resize-bar left-resize-bar"
@@ -18,7 +16,7 @@
         :key="index"
         class="img-container"
       >
-        <img :src="comic" :alt="comic" class="comic-img" />
+        <img :src="comic" :alt="comic" @dragstart.prevent class="comic-img" />
       </div>
     </div>
     <div
@@ -32,7 +30,15 @@
 <script lang="ts">
   import { Comic } from '@/interface';
   import request from '@/util/request';
-  import { defineComponent, onMounted, reactive, Ref, ref } from 'vue';
+  import {
+    computed,
+    defineComponent,
+    onMounted,
+    onUnmounted,
+    reactive,
+    Ref,
+    ref,
+  } from 'vue';
 
   /**默认宽度百分比 */
   const WIDTH_PERCENT = 0.9;
@@ -48,8 +54,11 @@
       const contentWidth = ref(0);
       const dragFlag = ref(false);
       const direction = ref(1);
-      const resizeState = ref('unset');
+      // const resizeState = ref('unset');
       const container = (ref(null) as unknown) as Ref<HTMLDivElement>;
+      const resizeState = computed(() =>
+        dragFlag.value ? 'ew-resize' : 'unset'
+      );
       /**
        * 获取漫画的地址
        */
@@ -93,7 +102,6 @@
       function dragStart(dir = 1) {
         direction.value = dir;
         dragFlag.value = true;
-        resizeState.value = 'ew-resize';
       }
 
       function saveWidth() {
@@ -109,12 +117,14 @@
           saveWidth();
         }
         dragFlag.value = false;
-        resizeState.value = 'unset';
       }
       getComicPath();
       onMounted(() => {
         initWidth();
       });
+      // 清除监听
+      onUnmounted(() => document.removeEventListener('mouseup', dragEnd));
+      document.addEventListener('mouseup', dragEnd);
       return {
         comics,
         contentWidth,
@@ -152,17 +162,22 @@
     position: relative;
   }
 
-  .left-resize-bar,
-  .right-resize-bar {
+  .resize-bar {
     content: '';
     display: block;
-    width: 3px;
     cursor: col-resize;
     cursor: ew-resize;
-    background: red;
+    background: transparent;
+  }
+
+  .left-resize-bar {
+    border-right: 3px red solid;
+    border-left: 8px transparent solid;
   }
 
   .right-resize-bar {
     left: 0;
+    border-left: 3px red solid;
+    border-right: 8px transparent solid;
   }
 </style>
