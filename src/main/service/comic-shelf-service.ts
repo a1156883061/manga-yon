@@ -112,6 +112,11 @@ export async function addComic(mainEvent: IpcMainInvokeEvent) {
   return comicDocument.toJSON();
 }
 
+/**
+ * 打开文件选择对话框，添加选择的文件夹
+ * @param mainEvent 事件
+ * @returns 选择的文件夹
+ */
 export async function addComicFolder(mainEvent: IpcMainInvokeEvent) {
   // 打开文件夹选择对话框
   const returnValue = await dialog.showOpenDialog(
@@ -122,17 +127,24 @@ export async function addComicFolder(mainEvent: IpcMainInvokeEvent) {
       properties: ['openDirectory', 'multiSelections'],
     }
   );
-  // 获取选中文件失败时返回false
+  // 获取选中文件失败时抛出错误
   if (returnValue.canceled) {
     throw new MsgError('open folder canceled');
   }
-  return returnValue.filePaths.map((file) => {
+  // 漫画文件夹
+  const comicDirsPromise = returnValue.filePaths.map((file) => {
     const comicPathList = new Promise<string[]>((resolve, reject) => {
       getImgInDir(file, reject, resolve);
     });
+    // const filterComicPath = comicPathList.filter(imgFile => imgFile)
     return new Promise<ComicDocType>((resolve, reject) => {
       comicPathList
         .then(async (paths) => {
+          // 没有图片，则返回false
+          if (paths.length === 0) {
+            reject(`${file}中不存在图片文件`);
+            return;
+          }
           const fileInfo: ComicSource = {
             path: paths,
             coverPath: '',
@@ -151,9 +163,16 @@ export async function addComicFolder(mainEvent: IpcMainInvokeEvent) {
           });
           resolve(comicDocument.toJSON());
         })
-        .catch(() => reject(new MsgError('add comic error')));
+        .catch(() => reject(new MsgError('添加文件夹出错')));
     });
   });
+  const settledComicDirs = await Promise.allSettled(comicDirsPromise);
+  // 过滤没有图片的文件夹
+  return ((settledComicDirs.filter(
+    (eachDir) => eachDir.status === 'fulfilled'
+  ) as unknown) as { status: 'fulfilled'; value: ComicDocType }[]).map(
+    (eachDir) => eachDir.value
+  );
 }
 
 /**
