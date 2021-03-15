@@ -10,7 +10,7 @@
       @mousedown="dragStart(-1)"
       @dragstart.prevent
     ></div>
-    <div class="content" :style="{ width: contentWidth + 'px' }">
+    <div ref="content" class="content" :style="{ width: contentWidth + 'px' }">
       <div
         v-for="(comic, index) in comics.path"
         :key="index"
@@ -43,6 +43,14 @@
   /**默认宽度百分比 */
   const WIDTH_PERCENT = 0.9;
 
+  /** 鼠标拖动方向 */
+  enum DragDirection {
+    Left,
+    Right,
+  }
+
+  /**鼠标事件左键 */
+  const LEFT_KEY = 1;
   export default defineComponent({
     setup() {
       /** 显示的漫画数据 */
@@ -53,9 +61,10 @@
       /** 显示宽度 */
       const contentWidth = ref(0);
       const dragFlag = ref(false);
-      const direction = ref(1);
+      const direction = ref(DragDirection.Left);
       // const resizeState = ref('unset');
       const container = (ref(null) as unknown) as Ref<HTMLDivElement>;
+      const content = (ref(null) as unknown) as Ref<HTMLDivElement>;
       const resizeState = computed(() =>
         dragFlag.value ? 'ew-resize' : 'unset'
       );
@@ -88,10 +97,17 @@
        */
       function resize(mouseEvent: MouseEvent) {
         if (dragFlag.value) {
-          if (mouseEvent.buttons != 1) {
+          if (mouseEvent.buttons != LEFT_KEY) {
             return;
           }
-          contentWidth.value += mouseEvent.movementX * 1.55 * direction.value;
+          const containerWidth = container.value.getBoundingClientRect().width;
+          if (direction.value == DragDirection.Left) {
+            contentWidth.value = containerWidth - mouseEvent.clientX * 2 - 6;
+            return;
+          }
+          contentWidth.value =
+            containerWidth - (containerWidth - mouseEvent.clientX) * 2;
+          // contentWidth.value += mouseEvent.movementX * 1.55 * direction.value;
         }
       }
       /**
@@ -100,7 +116,7 @@
        * @param dir 拖动的方向
        */
       function dragStart(dir = 1) {
-        direction.value = dir;
+        direction.value = dir == 1 ? DragDirection.Right : DragDirection.Left;
         dragFlag.value = true;
       }
 
@@ -132,6 +148,7 @@
         initWidth,
         resizeState,
         container,
+        content,
         resize,
         dragStart,
         dragEnd,
