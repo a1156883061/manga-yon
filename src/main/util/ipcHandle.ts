@@ -1,7 +1,7 @@
 import { ipcMain, IpcMainInvokeEvent } from 'electron';
 import { Response } from '@/interface';
 import { Channel } from '@/interface/Api';
-import { isClass } from '@/util/isClass';
+import { MsgError } from './MsgError';
 
 export default function<K extends keyof Channel, T extends Channel>(
   channel: K,
@@ -17,7 +17,7 @@ export default function<K extends keyof Channel, T extends Channel>(
         resolve(res);
       } catch (e) {
         // 如果错误类型为MsgError，则返回自定义消息
-        if (isClass('MsgError', e)) {
+        if (e.getErrorName && e.getErrorName() == MsgError.ErrorName) {
           res.code = e.code;
           res.message = e.message;
           resolve(res);
