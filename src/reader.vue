@@ -1,7 +1,5 @@
 <template>
-  <div id="app">
-    <reader-container />
-  </div>
+  <reader-container />
 </template>
 
 <script lang="ts">

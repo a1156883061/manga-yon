@@ -68,6 +68,8 @@
       const resizeState = computed(() =>
         dragFlag.value ? 'ew-resize' : 'unset'
       );
+      /**拖动事件开始时当前滚动高度的百分比 */
+      const scrollTopPercent = ref(0);
       /**
        * 获取漫画的地址
        */
@@ -100,6 +102,12 @@
           if (mouseEvent.buttons != LEFT_KEY) {
             return;
           }
+          console.table({
+            scrollTopPercent,
+            height: container.value.getBoundingClientRect().height,
+            scrollY: window.scrollY,
+          });
+
           const containerWidth = container.value.getBoundingClientRect().width;
           if (direction.value == DragDirection.Left) {
             contentWidth.value = containerWidth - mouseEvent.clientX * 2 - 6;
@@ -118,6 +126,13 @@
       function dragStart(dir = 1) {
         direction.value = dir == 1 ? DragDirection.Right : DragDirection.Left;
         dragFlag.value = true;
+        scrollTopPercent.value =
+          window.scrollY / container.value.getBoundingClientRect().height;
+        console.table({
+          scrollTopPercent,
+          height: container.value.getBoundingClientRect().height,
+          scrollY: window.scrollY,
+        });
       }
 
       function saveWidth() {
@@ -130,6 +145,13 @@
       function dragEnd() {
         // 保存函数在更改宽度时才执行
         if (dragFlag.value) {
+          window.scrollTo({
+            left: 0,
+            top:
+              container.value.getBoundingClientRect().height *
+              scrollTopPercent.value,
+            behavior: 'smooth',
+          });
           saveWidth();
         }
         dragFlag.value = false;
