@@ -27,6 +27,8 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow('main');
 });
 
+let mainWindow: BrowserWindow;
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -40,8 +42,24 @@ app.on('ready', async () => {
   //   }
   // }
   registerSafeFileProtocol();
-  createWindow('main');
+  mainWindow = await createWindow('main');
 });
+
+// 单例实现
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    // 当运行第二个实例时,将会聚焦到myWindow这个窗口
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+      }
+      mainWindow.focus();
+    }
+  });
+}
 
 // Exit cleanly on request from parent process in development mode.
 if (IS_DEVELOPMENT) {
