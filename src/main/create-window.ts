@@ -1,6 +1,6 @@
 import { getWindowBounds, saveWindowBoundsConfig } from '@/config/windowConfig';
 import path from 'path';
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, screen } from 'electron';
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib';
 import { WindowInfo } from '@/interface';
 
@@ -22,11 +22,13 @@ async function createWindow(
     Object.entries(boundTmp).length == 0 ||
     typeof boundTmp == 'string'
   ) {
+    const screenBounds = screen.getPrimaryDisplay().workArea;
+    // 默认尺寸
     bounds = {
-      width: 1920,
-      height: 1080,
-      x: 100,
-      y: 100,
+      width: screenBounds.width * 0.7,
+      height: screenBounds.height * 0.7,
+      x: screenBounds.width * 0.1,
+      y: screenBounds.height * 0.1,
     };
   } else {
     bounds = boundTmp;
