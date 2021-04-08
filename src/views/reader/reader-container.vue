@@ -4,10 +4,12 @@
     class="container"
     :style="{ cursor: resizeState }"
     @mousemove.passive="resize"
+    @touchmove.passive="resize"
   >
     <div
       class="resize-bar left-resize-bar"
       @mousedown="dragStart(-1)"
+      @touchstart="dragStart(-1)"
       @dragstart.prevent
     ></div>
     <div ref="content" class="content" :style="{ width: contentWidth + 'px' }">
@@ -22,6 +24,7 @@
     <div
       class="resize-bar right-resize-bar"
       @mousedown="dragStart()"
+      @touchstart="dragStart()"
       @dragstart.prevent
     ></div>
   </div>
@@ -97,9 +100,12 @@
       /**
        * 鼠标拖动改变宽度
        */
-      function resize(mouseEvent: MouseEvent) {
+      function resize(mouseEvent: MouseEvent | TouchEvent) {
         if (dragFlag.value) {
-          if (mouseEvent.buttons != LEFT_KEY) {
+          if (
+            mouseEvent instanceof MouseEvent &&
+            mouseEvent.buttons != LEFT_KEY
+          ) {
             return;
           }
           console.table({
@@ -107,14 +113,23 @@
             height: container.value.getBoundingClientRect().height,
             scrollY: window.scrollY,
           });
-
-          const containerWidth = container.value.getBoundingClientRect().width;
-          if (direction.value == DragDirection.Left) {
-            contentWidth.value = containerWidth - mouseEvent.clientX * 2 - 6;
+          let clientX;
+          if (
+            mouseEvent instanceof TouchEvent &&
+            mouseEvent.touches.length === 1
+          ) {
+            clientX = mouseEvent.touches[0].clientX;
+          } else if (mouseEvent instanceof MouseEvent) {
+            clientX = mouseEvent.clientX;
+          } else {
             return;
           }
-          contentWidth.value =
-            containerWidth - (containerWidth - mouseEvent.clientX) * 2;
+          const containerWidth = container.value.getBoundingClientRect().width;
+          if (direction.value == DragDirection.Left) {
+            contentWidth.value = containerWidth - clientX * 2 - 6;
+            return;
+          }
+          contentWidth.value = containerWidth - (containerWidth - clientX) * 2;
           // contentWidth.value += mouseEvent.movementX * 1.55 * direction.value;
         }
       }
@@ -161,8 +176,12 @@
         initWidth();
       });
       // 清除监听
-      onUnmounted(() => document.removeEventListener('mouseup', dragEnd));
+      onUnmounted(() => {
+        document.removeEventListener('mouseup', dragEnd);
+        document.removeEventListener('touchend', dragEnd);
+      });
       document.addEventListener('mouseup', dragEnd);
+      document.addEventListener('touchend', dragEnd);
       return {
         comics,
         contentWidth,
