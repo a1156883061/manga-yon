@@ -14,9 +14,6 @@ const webConfig = {
         },
         asarUnpack: ['0.worker.js'],
       },
-      chainWebpackRendererProcess(config) {
-        config.target('electron-renderer');
-      },
       chainWebpackMainProcess: (config) => {
         // Chain webpack config for electron main process only
         config.target('electron-main');
