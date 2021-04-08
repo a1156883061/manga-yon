@@ -28,7 +28,7 @@ export function readComicBack() {
  * 获取对应的漫画路径
  * @param winId 阅读器窗口的窗口ID
  */
-export function getComic(winId: number) {
+export function getComicReader(winId: number) {
   const comicPaths = comicPathMap.get(winId);
   if (comicPaths) {
     return comicPaths;

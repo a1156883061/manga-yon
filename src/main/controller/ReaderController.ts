@@ -1,9 +1,9 @@
-import { getComic } from '../service/read-comic-service';
+import { getComicReader } from '../service/read-comic-service';
 import { getReaderWidth, saveReaderWidth } from '../service/ReaderService';
 import ipcHandle from '../util/ipcHandle';
 
 ipcHandle('get-comic', (e, winId: number) => {
-  return getComic(winId);
+  return getComicReader(winId);
 });
 
 ipcHandle('reader/save-width', (mainEvent, width: number) => {
