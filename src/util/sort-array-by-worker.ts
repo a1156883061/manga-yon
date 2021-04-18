@@ -1,11 +1,13 @@
-import { spawn, Thread, Worker } from 'threads';
+import { runTask } from './my-thread';
 
 async function sortArrayByWorker(dirName: string, array: string[]) {
-  const sortWorker = await spawn<{
-    sortArray: (dirPath: string, files: string[]) => string[];
-  }>(new Worker('../worker/sort-array.ts', { type: 'module' }));
-  const result = await sortWorker.sortArray(dirName, array);
-  await Thread.terminate(sortWorker);
+  // const sortWorker = await getThread();
+  const promiseResult = new Promise((resolve) => {
+    runTask(async (worker) => {
+      resolve(worker.sortArray(dirName, array));
+    });
+  });
+  const result = await promiseResult;
   return result;
 }
 
