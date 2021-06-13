@@ -2,7 +2,7 @@ import { runTask } from './my-thread';
 
 async function sortArrayByWorker(dirName: string, array: string[]) {
   // const sortWorker = await getThread();
-  const promiseResult = new Promise((resolve) => {
+  const promiseResult = new Promise<string[]>((resolve) => {
     runTask(async (worker) => {
       resolve(worker.sortArray(dirName, array));
     });
