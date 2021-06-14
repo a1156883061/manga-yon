@@ -6,7 +6,7 @@ import getParentDirName, { getDirName } from '@/util/get-dir-name';
 import { ComicSource } from '@/interface';
 import naturalSort from 'javascript-natural-sort';
 import sortArrayByWorker from '@/util/sort-array-by-worker';
-import { ComicDocType, comics as comicData } from '../../store/rxdb';
+import { comics as comicData } from '../../store/rxdb';
 import { FILE_PROTOCOL } from '../regist-protocol';
 import { MsgError } from '../util/MsgError';
 
@@ -76,7 +76,7 @@ function getImgFilePaths(filePath: string[]) {
 export async function addComic(mainEvent: IpcMainInvokeEvent) {
   // 打开文件选择对话框
   const returnValue = await dialog.showOpenDialog(
-    BrowserWindow.fromId(mainEvent.frameId),
+    BrowserWindow.fromId(mainEvent.frameId) as BrowserWindow,
     {
       filters: [normalImageType],
       message: '请选择要导入的文件',
@@ -88,6 +88,7 @@ export async function addComic(mainEvent: IpcMainInvokeEvent) {
   if (returnValue.canceled) {
     return false;
   }
+  // 扩展名
   const imgPaths = await getImgFilePaths(returnValue.filePaths);
   let title = getParentDirName(imgPaths[0]);
   if (title == undefined) {
@@ -120,7 +121,7 @@ export async function addComic(mainEvent: IpcMainInvokeEvent) {
 export async function addComicFolder(mainEvent: IpcMainInvokeEvent) {
   // 打开文件夹选择对话框
   const returnValue = await dialog.showOpenDialog(
-    BrowserWindow.fromId(mainEvent.frameId),
+    BrowserWindow.fromId(mainEvent.frameId) as BrowserWindow,
     {
       message: '请选择要导入的文件夹',
       title: '导入漫画',
@@ -129,15 +130,17 @@ export async function addComicFolder(mainEvent: IpcMainInvokeEvent) {
   );
   // 获取选中文件失败时抛出错误
   if (returnValue.canceled) {
-    throw new MsgError('open folder canceled');
+    throw new MsgError('取消选择');
   }
+  returnValue.filePaths.sort((a, b) => -naturalSort(a, b));
+  // debugger;
   // 漫画文件夹
   const comicDirsPromise = returnValue.filePaths.map((file) => {
     const comicPathList = new Promise<string[]>((resolve, reject) => {
       getImgInDir(file, reject, resolve);
     });
     // const filterComicPath = comicPathList.filter(imgFile => imgFile)
-    return new Promise<ComicDocType>((resolve, reject) => {
+    return new Promise<ComicSource>((resolve, reject) => {
       comicPathList
         .then(async (paths) => {
           // 没有图片，则返回false
@@ -155,24 +158,32 @@ export async function addComicFolder(mainEvent: IpcMainInvokeEvent) {
             eachPath = FILE_PROTOCOL + eachPath;
             return eachPath;
           });
-          // 将数据添加到数据库
-          const comic = await comicData;
-          const comicDocument = await comic.insert({
-            title: fileInfo.title,
-            path: fileInfo.path,
-          });
-          resolve(comicDocument.toJSON());
+          resolve(fileInfo);
         })
         .catch(() => reject(new MsgError('添加文件夹出错')));
     });
   });
   const settledComicDirs = await Promise.allSettled(comicDirsPromise);
   // 过滤没有图片的文件夹
-  return ((settledComicDirs.filter(
+  const filterComicDirs = ((settledComicDirs.filter(
     (eachDir) => eachDir.status === 'fulfilled'
-  ) as unknown) as { status: 'fulfilled'; value: ComicDocType }[]).map(
+  ) as unknown) as { status: 'fulfilled'; value: ComicSource }[]).map(
     (eachDir) => eachDir.value
   );
+  const comic = await comicData;
+  const ComicDirs = filterComicDirs.map((eachDir) => {
+    // 插入数据
+    const comicDocument = comic.insert({
+      title: eachDir.title,
+      path: eachDir.path,
+    });
+    return new Promise((resolve) => {
+      comicDocument.then((rxDocument) => {
+        resolve(rxDocument.toJSON());
+      });
+    });
+  });
+  return await Promise.all(ComicDirs);
 }
 
 /**
@@ -185,7 +196,7 @@ export function getComic(): Promise<ComicSource[]> {
       .then((comicDataCollection) => {
         comicDataCollection
           .find()
-          .sort({ id: 'asc' })
+          .sort({ id: 'desc' })
           .exec()
           .then((comics) => {
             let comicInfo: ComicSource;

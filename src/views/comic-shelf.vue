@@ -1,6 +1,14 @@
 <template>
-  <div>
+  <div class="container">
     <a-card class="mo-card">
+      <a-card-grid class="mo-card-grid mo-card-grid-add">
+        <div class="open-file-btn ant-btn" @click="addComic()">
+          <icon-comic-shelf style="text-align:center" />
+        </div>
+        <div class="open-file-btn ant-btn" @click="addComicFolder">
+          <folder-open-filled style="text-align:center;font-size: 50px" />
+        </div>
+      </a-card-grid>
       <template v-if="comicSources != null && comicSources.length != 0">
         <a-card-grid
           class="mo-card-grid"
@@ -29,14 +37,6 @@
           </div>
         </a-card-grid>
       </template>
-      <a-card-grid class="mo-card-grid mo-card-grid-add">
-        <div class="open-file-btn ant-btn" @click="addComic()">
-          <icon-comic-shelf style="text-align:center" />
-        </div>
-        <div class="open-file-btn ant-btn" @click="addComicFolder">
-          <folder-open-filled style="text-align:center;font-size: 50px" />
-        </div>
-      </a-card-grid>
     </a-card>
   </div>
 </template>
@@ -61,8 +61,8 @@
       async function addComic(
         channel: 'add-comic' | 'add-comic-folder' = 'add-comic'
       ) {
-        const index = comicSources.length;
-        comicSources.push({
+        const index = 0;
+        comicSources.unshift({
           id: 0,
           isLoading: true,
           showActionFlag: false,
@@ -76,6 +76,7 @@
             | ComicSourceLoad[];
           comicSources[index] = reactive(comicSources[index]);
           comicSources[index].isLoading = false;
+          // 添加失败，删除占位元素
           if (typeof newComic == 'boolean') {
             comicSources.splice(index, 1);
             return;
@@ -87,17 +88,17 @@
             return;
           }
           if (newComic.length > 0) {
-            newComic[0].isLoading = false;
-            newComic[0].coverPath = newComic[0].path[0];
-            comicSources[index] = newComic[0];
+            comicSources.splice(index, 1);
+            newComic
+              .map((eachComic) => {
+                return Object.assign(eachComic, {
+                  isLoading: false,
+                  coverPath: eachComic.path[0],
+                });
+              })
+              .forEach((eachComic) => comicSources.unshift(eachComic));
           } else {
             comicSources.splice(index, 1);
-          }
-          for (let index = 1; index < newComic.length; index++) {
-            const element = newComic[index];
-            element.isLoading = false;
-            element.coverPath = element.path[0];
-            comicSources.push(element);
           }
         } catch {
           comicSources.splice(index, 1);
@@ -115,8 +116,8 @@
         const comics = (await request('get-store-comic')) as ComicSourceLoad[];
         comics.forEach((each) => {
           each.isLoading = false;
-          comicSources.push(each);
         });
+        comicSources.push(...comics);
       }
       function readComic(
         comicPaths: string[],
@@ -154,6 +155,10 @@
 </script>
 
 <style scoped>
+  /* .container {
+    background: linear-gradient(to right top, #65dfc9, #6cdbeb);
+  } */
+
   .mo-card {
     background-color: transparent;
   }
@@ -173,16 +178,27 @@
     user-select: none;
     width: 320px;
     height: 510px;
-    background-color: #b0b5be;
+    background: linear-gradient(
+      to right bottom,
+      rgba(255, 255, 255, 0.7),
+      rgba(255, 255, 255, 0.3)
+    );
+    /* background-color: #b0b5be; */
   }
 
-  .mo-card-grid:nth-child(2n) {
+  /* .mo-card-grid:nth-child(2n) {
     background-color: #8a919e;
-  }
+    background: linear-gradient(
+      to right bottom,
+      rgba(255, 255, 255, 0.7),
+      rgba(255, 255, 255, 0.3)
+    );
+  } */
   .cover-container {
     overflow: hidden;
     display: flex;
     align-items: center;
+    height: 100%;
   }
   .cover-container img {
     width: 100%;
@@ -193,15 +209,23 @@
     white-space: normal;
   }
 
+  /* 居中封面图片 */
+  .mo-card-grid ::v-deep(.ant-spin-nested-loading) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 90%;
+  }
+
+  .mo-card-grid ::v-deep(.ant-spin-container) {
+    height: 100%;
+  }
+
   .mo-card-grid-add {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: stretch;
-  }
-
-  .mo-card-grid ::v-deep(.ant-spin-nested-loading) {
-    height: 90%;
   }
 
   .action-container {
