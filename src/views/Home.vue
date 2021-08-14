@@ -73,6 +73,12 @@
   });
 </script>
 
+<style>
+  body {
+    background: rgb(250, 250, 250);
+  }
+</style>
+
 <style scoped>
   #layout-trigger {
     height: 100%;

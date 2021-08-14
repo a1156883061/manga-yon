@@ -155,9 +155,10 @@
 </script>
 
 <style scoped>
-  /* .container {
-    background: linear-gradient(to right top, #65dfc9, #6cdbeb);
-  } */
+  .container {
+    /* background: linear-gradient(to right top, #65dfc9, #6cdbeb); */
+    background: #f0f2f5;
+  }
 
   .mo-card {
     background-color: transparent;

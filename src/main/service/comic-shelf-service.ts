@@ -15,6 +15,44 @@ const normalImageType: Electron.FileFilter = {
   name: '常规图片',
 };
 
+/** 7z支持的压缩文件类型 */
+const archiveType: Electron.FileFilter = {
+  name: '压缩文件',
+  extensions: [
+    '7z',
+    'XZ',
+    'BZIP2',
+    'GZIP',
+    'TAR',
+    'ZIP',
+    'WIM',
+    'ARJ',
+    'CAB',
+    'CHM',
+    'CPIO',
+    'CramFS',
+    'DEB',
+    'DMG',
+    'FAT',
+    'HFS',
+    'ISO',
+    'LZH',
+    'LZMA',
+    'MBR',
+    'MSI',
+    'NSIS',
+    'NTFS',
+    'RAR',
+    'RPM',
+    'SquashFS',
+    'UDF',
+    'VHD',
+    'WIM',
+    'XAR',
+    'Z',
+  ],
+};
+
 function getImgInDir(
   dirPath: string,
   reject: (reason?: unknown) => void,
@@ -78,7 +116,7 @@ export async function addComic(mainEvent: IpcMainInvokeEvent) {
   const returnValue = await dialog.showOpenDialog(
     BrowserWindow.fromId(mainEvent.frameId) as BrowserWindow,
     {
-      filters: [normalImageType],
+      filters: [normalImageType, archiveType],
       message: '请选择要导入的文件',
       title: '导入漫画',
       properties: ['openFile', 'multiSelections'],
@@ -89,6 +127,10 @@ export async function addComic(mainEvent: IpcMainInvokeEvent) {
     return false;
   }
   // 扩展名
+  const extName = path.extname(returnValue.filePaths[0]);
+  if (archiveType.extensions.includes(extName)) {
+    return false;
+  }
   const imgPaths = await getImgFilePaths(returnValue.filePaths);
   let title = getParentDirName(imgPaths[0]);
   if (title == undefined) {
