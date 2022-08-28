@@ -6,7 +6,7 @@ import getParentDirName, { getDirName } from '@/util/get-dir-name';
 import { ComicSource } from '@/interface';
 import naturalSort from 'javascript-natural-sort';
 import sortArrayByWorker from '@/util/sort-array-by-worker';
-import { comics as comicData } from '../../store/rxdb';
+import { ComicDocType, comics as comicData } from '../../store/rxdb';
 import { FILE_PROTOCOL } from '../regist-protocol';
 import { MsgError } from '../util/MsgError';
 
@@ -219,7 +219,7 @@ export async function addComicFolder(mainEvent: IpcMainInvokeEvent) {
       title: eachDir.title,
       path: eachDir.path,
     });
-    return new Promise((resolve) => {
+    return new Promise((resolve: (value: ComicDocType) => void) => {
       comicDocument.then((rxDocument) => {
         resolve(rxDocument.toJSON());
       });

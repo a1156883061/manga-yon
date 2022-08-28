@@ -12,18 +12,11 @@
 
 <script lang="ts">
   import zhCN from 'ant-design-vue/es/locale/zh_CN';
-  import moment from 'moment';
-  import 'moment/dist/locale/zh-cn';
-  import { defineComponent, ref, watch } from 'vue';
-
-  moment.locale('zhCN');
+  import { defineComponent, ref } from 'vue';
 
   export default defineComponent({
     setup() {
       const locale = ref(zhCN);
-      watch(locale, (newValue) => {
-        moment.locale(newValue.locale);
-      });
       return {
         locale,
       };

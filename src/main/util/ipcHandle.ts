@@ -15,7 +15,7 @@ export default function<K extends keyof Channel, T extends Channel>(
       try {
         res.data = await listener(ipcEvent, ...args);
         resolve(res);
-      } catch (e) {
+      } catch (e:any) {
         // 如果错误类型为MsgError，则返回自定义消息
         if (e.getErrorName && e.getErrorName() == MsgError.ErrorName) {
           res.code = e.code;

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
+const { defineConfig } = require('@vue/cli-service');
 const ThreadsPlugin = require('threads-plugin');
 const tsImportPluginFactory = require('ts-import-plugin');
 /**@type {import('@vue/cli-service/types/ProjectOptions').ProjectOptions} */
@@ -20,14 +21,13 @@ const webConfig = {
           createDesktopShortcut: true, // 创建桌面图标
           createStartMenuShortcut: true, // 创建开始菜单图标
         },
-        asarUnpack: ['0.worker.js'],
       },
       chainWebpackMainProcess: (config) => {
         // Chain webpack config for electron main process only
         config.target('electron-main');
         config
           .plugin('thread')
-          .use(ThreadsPlugin, [{ target: 'electron-node-worker' }]);
+          .use(ThreadsPlugin, [{ target: 'electron-main' }]);
       },
     },
   },
@@ -86,9 +86,8 @@ const webConfig = {
       less: {
         // http://lesscss.org/usage/#less-options-strict-units `Global Variables`
         // `primary` is global variables fields name
-        javascriptEnabled: true,
       },
     },
   },
 };
-module.exports = webConfig;
+module.exports = defineConfig(webConfig);
