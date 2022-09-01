@@ -1,7 +1,7 @@
-import { lookup } from 'mime';
+import { getType } from 'mime';
 
 function isImage(fileName: string) {
-  const mimeType = lookup(fileName);
+  const mimeType = getType(fileName);
   if (mimeType == undefined) {
     return false;
   }
