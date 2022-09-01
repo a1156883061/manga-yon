@@ -6,7 +6,7 @@ import getParentDirName, { getDirName } from '@/util/get-dir-name';
 import { ComicSource } from '@/interface';
 import naturalSort from 'javascript-natural-sort';
 import sortArrayByWorker from '@/util/sort-array-by-worker';
-import { comics as comicData } from '../../store/rxdb';
+import { ComicDocType, comics as comicData } from '../../store/rxdb';
 import { FILE_PROTOCOL } from '../regist-protocol';
 import { MsgError } from '../util/MsgError';
 
@@ -207,11 +207,11 @@ export async function addComicFolder(mainEvent: IpcMainInvokeEvent) {
   });
   const settledComicDirs = await Promise.allSettled(comicDirsPromise);
   // 过滤没有图片的文件夹
-  const filterComicDirs = ((settledComicDirs.filter(
-    (eachDir) => eachDir.status === 'fulfilled'
-  ) as unknown) as { status: 'fulfilled'; value: ComicSource }[]).map(
-    (eachDir) => eachDir.value
-  );
+  const filterComicDirs = (
+    settledComicDirs.filter(
+      (eachDir) => eachDir.status === 'fulfilled'
+    ) as unknown as { status: 'fulfilled'; value: ComicSource }[]
+  ).map((eachDir) => eachDir.value);
   const comic = await comicData;
   const ComicDirs = filterComicDirs.map((eachDir) => {
     // 插入数据
@@ -219,8 +219,8 @@ export async function addComicFolder(mainEvent: IpcMainInvokeEvent) {
       title: eachDir.title,
       path: eachDir.path,
     });
-    return new Promise((resolve) => {
-      comicDocument.then((rxDocument) => {
+    return new Promise((resolve: (value: ComicDocType) => void) => {
+      comicDocument.then((rxDocument: any) => {
         resolve(rxDocument.toJSON());
       });
     });
@@ -240,10 +240,10 @@ export function getComic(): Promise<ComicSource[]> {
           .find()
           .sort({ id: 'desc' })
           .exec()
-          .then((comics) => {
+          .then((comics: any) => {
             let comicInfo: ComicSource;
-            comics.map((eachComic) => {
-              comicInfo = (eachComic.toJSON() as unknown) as ComicSource;
+            comics.map((eachComic: any) => {
+              comicInfo = eachComic.toJSON() as unknown as ComicSource;
               comicInfo.coverPath = comicInfo.path[0];
               comicInfos.push(comicInfo as ComicSource);
             });
@@ -263,9 +263,5 @@ export async function deleteComicByPath(id: string) {
     throw new MsgError('id错误');
   }
   const comicDao = await comicData;
-  await comicDao
-    .findOne()
-    .where('id')
-    .eq(id)
-    .remove();
+  await comicDao.findOne().where('id').eq(id).remove();
 }

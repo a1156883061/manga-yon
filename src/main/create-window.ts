@@ -43,6 +43,7 @@ async function createWindow(
       //   .ELECTRON_NODE_INTEGRATION as unknown) as boolean
       // nodeIntegration: process.env.NODE_ENV == 'development' ? true : false,
       nodeIntegration: true,
+      contextIsolation: true,
       // enableRemoteModule: true,
       preload: path.join(__dirname, 'preload.js'),
     },
